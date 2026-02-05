@@ -1,0 +1,21 @@
+stages:
+  - review
+
+variables:
+  # Configure these in GitLab CI settings
+  # GITLAB_PERSONAL_ACCESS_TOKEN: Masked variable
+  # OPENAI_API_KEY: Masked variable (if using LLM)
+
+ai_code_review:
+  stage: review
+  image: 
+    name: bun-python-review-agent:latest # Placeholder, user needs to build/push this
+    entrypoint: [""]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - chmod +x ./scripts/*.sh
+  script:
+    - echo "🚀 Starting AI Code Review..."
+    - python3 ./ci/review_bot.py
+  allow_failure: true
