@@ -59,17 +59,8 @@ description: 标准化“需求描述 → 规范检索 (QMD) → 实现改动 �
 
 ### 操作流程
 ```bash
-# 1. 确保在 master
-git checkout master && git pull origin master
-
-# 2. 创建 Target 分支 (Empty)
-git checkout -b {feature}-mr
-git push -u origin {feature}-mr
-
-# 3. 创建 Source 分支 (Work)
-git checkout -b fix-{feature}
-# ... modify & commit ...
-git push -u origin fix-{feature}
+# 自动创建 Target 和 Source 分支
+./scripts/start_feature.sh "{feature-name}"
 ```
 
 ## Step 5. Create MR via GitLab MCP
@@ -77,22 +68,14 @@ git push -u origin fix-{feature}
 必须使用 GitLab MCP。禁止浏览器操作。
 
 **MR 描述模板** (需包含根因、改动、**以及遵循的规范**):
+(Script `create_mr.sh` contains the template)
 
-```markdown
-## 根因分析
-- 现象：
-- 根因：
+Automatically create MR using the script:
 
-## 修复方案
-- 设计要点：
-- **遵循规范**：(列出 Step 2 中参考的 QMD 文档/条款)
-
-## 改动说明
-- 模块：
-
-## 测试结果
-- 命令：
-- 截图/日志：
+```bash
+# Usage: ./scripts/create_mr.sh "MR Title"
+export GITLAB_PERSONAL_ACCESS_TOKEN="<your-token>"
+./scripts/create_mr.sh "feat: <Title>"
 ```
 
 ## Step 6. Code Review Report (中文)
@@ -130,21 +113,10 @@ git push -u origin fix-{feature}
 
 对于规范违例，**必须**在 MR Diff 中进行行级评论。
 
-1.  **Locate Diff**: 获取 MR 的 DiffRefs (base_sha, head_sha, start_sha)。
-2.  **Pinpoint Line**: 确定违规代码在 `bad_code.py` (或其他文件) 的具体行号。
-3.  **Post Discussion**: 使用 GitLab API / Tool 发布讨论。
+1.  **Locate Violation**: Identify file and line number.
+2.  **Post Discussion**: Run the helper script.
 
-**API Payload Structure**:
-```json
-{
-  "body": "❌ **Norm Violation**: {Description}\n\n(Detected by QMD via `{norm_doc}`)",
-  "position": {
-    "base_sha": "{base_sha}",
-    "start_sha": "{start_sha}",
-    "head_sha": "{head_sha}",
-    "position_type": "text",
-    "new_path": "{file_path}",
-    "new_line": {line_number}
-  }
-}
+```bash
+# Usage: ./scripts/post_comment.sh <file> <line> "<comment>"
+./scripts/post_comment.sh "bad_code.py" 10 "❌ Violation: ..."
 ```
